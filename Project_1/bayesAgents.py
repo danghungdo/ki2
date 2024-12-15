@@ -97,29 +97,29 @@ def constructBayesNet(gameState):
     variableDomainsDict = {}
 
     "*** YOUR CODE HERE ***"
-    # util.raiseNotDefined()
+    
+    # obtain observation variables
     for housePos in gameState.getPossibleHouses():
         for obsPos in gameState.getHouseWalls(housePos):
             obsVar = OBS_VAR_TEMPLATE % obsPos
             obsVars.append(obsVar)
     
+    # populate edges
+    edges.append((X_POS_VAR, FOOD_HOUSE_VAR))
+    edges.append((X_POS_VAR, GHOST_HOUSE_VAR))
+    edges.append((Y_POS_VAR, FOOD_HOUSE_VAR))
+    edges.append((Y_POS_VAR, GHOST_HOUSE_VAR))
+    for obsVar in obsVars:
+        edges.append((FOOD_HOUSE_VAR, obsVar))
+        edges.append((GHOST_HOUSE_VAR, obsVar))
+        
+    # set variable domains
     variableDomainsDict[X_POS_VAR] = set(X_POS_VALS)
     variableDomainsDict[Y_POS_VAR] = set(Y_POS_VALS)
     variableDomainsDict[FOOD_HOUSE_VAR] = set(HOUSE_VALS)
     variableDomainsDict[GHOST_HOUSE_VAR] = set(HOUSE_VALS)
     for obsVar in obsVars:
         variableDomainsDict[obsVar] = set(OBS_VALS)
-        
-    edges.append((X_POS_VAR, FOOD_HOUSE_VAR))
-    edges.append((Y_POS_VAR, FOOD_HOUSE_VAR))
-    edges.append((X_POS_VAR, GHOST_HOUSE_VAR))
-    edges.append((Y_POS_VAR, GHOST_HOUSE_VAR))
-    for obsVar in obsVars:
-        edges.append((FOOD_HOUSE_VAR, obsVar))
-        edges.append((GHOST_HOUSE_VAR, obsVar))
-
-    
-    
     
     "*** END YOUR CODE HERE ***"
 
@@ -152,7 +152,12 @@ def fillYCPT(bayesNet, gameState):
 
     yFactor = bn.Factor([Y_POS_VAR], [], bayesNet.variableDomainsDict())
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    yFactor.setProbability({Y_POS_VAR: BOTH_TOP_VAL}, PROB_BOTH_TOP)
+    yFactor.setProbability({Y_POS_VAR: BOTH_BOTTOM_VAL}, PROB_BOTH_BOTTOM)
+    yFactor.setProbability({Y_POS_VAR: LEFT_TOP_VAL}, PROB_ONLY_LEFT_TOP)
+    yFactor.setProbability({Y_POS_VAR: LEFT_BOTTOM_VAL}, PROB_ONLY_LEFT_BOTTOM)
+    
     "*** END YOUR CODE HERE ***"
     bayesNet.setCPT(Y_POS_VAR, yFactor)
 
@@ -284,7 +289,15 @@ def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
     (This should be a very short method.)
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    # Compute the marginal distribution of the food house variable
+    foodHouseMarginal = inference.inferenceByVariableElimination(bayesNet, [FOOD_HOUSE_VAR], evidence, eliminationOrder)
+    
+    # Find the most probable position for the food house
+    mostLikelyFoodHouse = max(foodHouseMarginal.getAllPossibleAssignmentDicts(), key=foodHouseMarginal.getProbability)
+    
+    return mostLikelyFoodHouse
+    
     "*** END YOUR CODE HERE ***"
 
 
