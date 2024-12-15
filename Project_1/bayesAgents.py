@@ -400,7 +400,25 @@ class VPIAgent(BayesAgent):
         rightExpectedValue = 0
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        
+        # Compute the marginal distribution of the food house and ghost house
+        houseMarginals = inference.inferenceByVariableElimination(self.bayesNet, [FOOD_HOUSE_VAR, GHOST_HOUSE_VAR], evidence, eliminationOrder)
+        
+        
+        # Compute P(foodHouse=topLeft and ghostHouse=topRight|evidence) and P(foodHouse=topRight and ghostHouse=topLeft|evidence)
+        foodHouseLeftProbability = 0
+        foodHouseRightProbability = 0
+        for assignmentDict in houseMarginals.getAllPossibleAssignmentDicts():
+            if assignmentDict[FOOD_HOUSE_VAR] == TOP_LEFT_VAL and assignmentDict[GHOST_HOUSE_VAR] == TOP_RIGHT_VAL:
+                foodHouseLeftProbability = houseMarginals.getProbability(assignmentDict)
+                continue
+            if assignmentDict[FOOD_HOUSE_VAR] == TOP_RIGHT_VAL and assignmentDict[GHOST_HOUSE_VAR] == TOP_LEFT_VAL:
+                foodHouseRightProbability = houseMarginals.getProbability(assignmentDict)
+        
+        # Compute expected rewards for entering top left or top right houses
+        leftExpectedValue = foodHouseLeftProbability * WON_GAME_REWARD + (1 - foodHouseLeftProbability) * GHOST_COLLISION_REWARD
+        rightExpectedValue = foodHouseRightProbability * WON_GAME_REWARD + (1- foodHouseRightProbability) * GHOST_COLLISION_REWARD
+        
         "*** END YOUR CODE HERE ***"
 
         return leftExpectedValue, rightExpectedValue
@@ -467,7 +485,14 @@ class VPIAgent(BayesAgent):
         expectedValue = 0
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        for probability, explorationEvidence in self.getExplorationProbsAndOutcomes(evidence):
+            # Compute expected rewards given the hypothetical evidence - explorationEvidence
+            leftExpectedValue, rightExpectedValue = self.computeEnterValues(explorationEvidence, enterEliminationOrder)
+            
+            # Compute expected value with given fomular
+            expectedValue += max(leftExpectedValue, rightExpectedValue) * probability
+            
         "*** END YOUR CODE HERE ***"
 
         return expectedValue
